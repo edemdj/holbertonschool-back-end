@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""import"""
+"""using this REST API, for a given employee ID"""
 import json
 import requests
 import sys
