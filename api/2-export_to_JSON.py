@@ -1,35 +1,27 @@
 #!/usr/bin/python3
-import requests
+"""import"""
 import json
+import requests
 import sys
 
-def export_to_json(user_id, username, tasks):
-    data = {str(user_id): [{"task": task["title"], "completed": task["completed"], "username": username} for task in tasks]}
-    json_output = json.dumps(data, indent=4)
-    print(json_output)
-
-def get_employee_todo_progress(employee_id):
-    root = "https://jsonplaceholder.typicode.com"
-    users = requests.get(root + "/users", params={"id": employee_id})
-    
-    if users.status_code == 200:
-        for user in users.json():
-            user_id = user['id']
-            username = user['name']
-            
-            todos = requests.get(root + "/todos", params={"userId": user_id})
-            if todos.status_code == 200:
-                tasks = todos.json()
-                export_to_json(user_id, username, tasks)
-            else:
-                print(f"Failed to fetch tasks for user {username}.")
-    else:
-        print("Failed to fetch user information.")
-
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py employee_id")
+    if len(sys.argv) < 2:
+        print(f"missing employee id as argument")
         sys.exit(1)
-    
-    employee_id = sys.argv[1]
-    get_employee_todo_progress(employee_id)
+
+    URL = "https://jsonplaceholder.typicode.com"
+    EMPLOYEE_ID = sys.argv[1]
+
+    EMPLOYEE_TODOS = requests.get(f"{URL}/users/{EMPLOYEE_ID}/todos",
+                                  params={"_expand": "user"})
+    data = EMPLOYEE_TODOS.json()
+
+    username = data[0]["user"]["username"]
+    USER_TASK = {EMPLOYEE_ID: []}
+    for task in data:
+        dic_task = {"task": task["title"], "completed": task["completed"],
+                    "username": username}
+        USER_TASK[EMPLOYEE_ID].append(dic_task)
+    fileName = f"{EMPLOYEE_ID}.json"
+    with open(fileName, "w") as file:
+        json.dump(USER_TASK, file)

@@ -1,37 +1,19 @@
 #!/usr/bin/python3
-import requests
+"""import"""
 import json
-
-def export_to_json(data):
-    filename = "todo_all_employees.json"
-    with open(filename, 'w') as json_file:
-        json.dump(data, json_file, indent=4)
-
-def get_all_employee_todo_progress():
-    root = "https://jsonplaceholder.typicode.com"
-    users = requests.get(root + "/users")
-
-    if users.status_code == 200:
-        all_tasks = {}
-        for user in users.json():
-            user_id = user['id']
-            username = user['name']
-            
-            todos = requests.get(root + "/todos", params={"userId": user_id})
-            if todos.status_code == 200:
-                tasks = todos.json()
-                for task in tasks:
-                    task_data = {"username": username, "task": task["title"], "completed": task["completed"]}
-                    if user_id in all_tasks:
-                        all_tasks[user_id].append(task_data)
-                    else:
-                        all_tasks[user_id] = [task_data]
-            else:
-                print(f"Failed to fetch tasks for user {username}.")
-        
-        export_to_json(all_tasks)
-    else:
-        print("Failed to fetch user information.")
+import requests
 
 if __name__ == "__main__":
-    get_all_employee_todo_progress()
+    URL = "https://jsonplaceholder.typicode.com"
+
+    users = requests.get(f"{URL}/users").json()
+    dic_user = {}
+    for user in users:
+        tasks = requests.get(f"{URL}/users/{user['id']}/todos").json()
+        dic_user[user["id"]] = []
+        for task in tasks:
+            dic_task = {"task": task["title"], "completed": task["completed"],
+                        "username": user["username"]}
+            dic_user[user["id"]].append(dic_task)
+    with open("todo_all_employees.json", "w") as file:
+        json.dump(dic_user, file)
